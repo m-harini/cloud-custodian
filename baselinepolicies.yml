@@ -1,0 +1,26 @@
+policies:
+  - name: account-service-limit-increase
+    resource: aws.account
+    comment: |
+      Request a 25% increase in any service limit that reaches 80% of maximum.
+    filters:
+      - type: service-limit
+    mode:
+      schedule: "rate(24 hours)"
+      type: periodic
+    actions:
+      - type: request-limit-increase
+        percent-increase: 25
+      - type: notify
+        action_desc: "Submitted service limit increase request of 25 percent."
+        subject: "Limit Increase Was Requested"
+        to:  
+          - event-user
+          - resource-creator
+        transport:
+          type: sqs
+          queue: https://sqs.us-west-2.amazonaws.com/123456789/custodian_mailer_queue
+          region: us-west-2
+        violation_desc: "Service limit hit 80 percent of max."
+    tags: 
+      - policy:baseline
